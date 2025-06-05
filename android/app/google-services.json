@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "609013483503",
+    "project_id": "mentally-f9f80",
+    "storage_bucket": "mentally-f9f80.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:609013483503:android:618f5951564f912353d81a",
+        "android_client_info": {
+          "package_name": "com.example.mentally"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDS69yzqjSmpB8sUqNHyOErVPlljh8Q8KM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

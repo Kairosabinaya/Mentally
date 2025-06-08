@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mentally/page/welcome.dart';
 
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {

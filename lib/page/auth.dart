@@ -15,7 +15,7 @@ class _LoginPageState extends State<LoginPage> {
   bool isSignIn = true;
   late PageController _pageController;
 
-  final Color primaryColor = const Color.fromARGB(255, 17, 104, 166);
+  final Color primaryColor = const Color.fromARGB(255, 13, 135, 222);
   final Color greyColor = const Color(0xFFE3F2FD);
 
   final TextEditingController _nameController = TextEditingController();
@@ -182,11 +182,22 @@ class _LoginPageState extends State<LoginPage> {
                 child: PageView(
                   controller: _pageController,
                   onPageChanged: (index) {
-                    setState(() {
-                      isSignIn = index == 0;
-                    });
+                    if (isSignIn != (index == 0)) {
+                      setState(() {
+                        isSignIn = index == 0;
+                      });
+                    }
                   },
-                  children: [buildSignInPage(), buildSignUpPage()],
+                  children: [
+                    Container(
+                      key: const ValueKey('signIn'),
+                      child: buildSignInPage(),
+                    ),
+                    Container(
+                      key: const ValueKey('signUp'),
+                      child: buildSignUpPage(),
+                    ),
+                  ],
                 ),
               ),
             ],

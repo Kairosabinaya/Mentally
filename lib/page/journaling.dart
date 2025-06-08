@@ -22,17 +22,20 @@ class _JournalingPageState extends State<JournalingPage> {
   ];
   final Set<String> _selectedFeelings = {};
 
-  // step 2: TODO: ini masih data dummy buat nampilin kalender:
-  final Map<String, String> _dayCalender = {
-    'MIN': '5',
-    'MON': '6',
-    'TUE': '7',
-    'WED': '8',
-    'THU': '9',
-    'FRI': '10',
-    'SAT': '11',
-  };
+  // step 2: Generate calendar data dynamically based on the current date.
+  List<Map<String, dynamic>> _generateWeekDays() {
+    final now = DateTime.now();
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    final daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 
+    return List.generate(7, (index) {
+      final date = startOfWeek.add(Duration(days: index));
+      return {
+        'dayName': daysOfWeek[index],
+        'dayNumber': date.day,
+      };
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(

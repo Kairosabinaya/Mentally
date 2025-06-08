@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mentally/page/journaling.dart';
+import 'package:mentally/page/welcome.dart';
+
 
 void main() => runApp(MyApp());
 
@@ -11,7 +12,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Mentally',
-      home: JournalingPage(),
+      home: WelcomePage(),
     );
   }
 }

@@ -30,12 +30,10 @@ class _JournalingPageState extends State<JournalingPage> {
 
     return List.generate(7, (index) {
       final date = startOfWeek.add(Duration(days: index));
-      return {
-        'dayName': daysOfWeek[index],
-        'dayNumber': date.day,
-      };
+      return {'dayName': daysOfWeek[index], 'dayNumber': date.day};
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -206,22 +204,24 @@ class _JournalingPageState extends State<JournalingPage> {
 
   // Method buat build widget-widget lainnya.
   Widget _buildDateSelector() {
+    final weekDays = _generateWeekDays();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children:
-          _dayCalender.entries.map((entry) {
-            final dayName = entry.key;
-            final dayNumber = int.parse(entry.value);
+          weekDays.map((entry) {
+            final dayName = entry['dayName'] as String;
+            final dayNumber = entry['dayNumber'] as int;
             final isSelected = dayNumber == _selectedDay;
+
             String emoji = '';
             switch (dayName) {
-              case 'MIN':
+              case 'SUN':
                 emoji = '😞';
                 break;
-              case 'SEN':
+              case 'MON':
                 emoji = '😊';
                 break;
-              case 'SEL':
+              case 'TUE':
                 emoji = '😠';
                 break;
             }

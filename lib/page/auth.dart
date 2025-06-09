@@ -1,7 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mentally/model/auth.dart';
 import 'package:mentally/model/user.dart';
-
 import 'package:mentally/page/home.dart';
 
 class LoginPage extends StatefulWidget {
@@ -60,17 +61,79 @@ class _LoginPageState extends State<LoginPage> {
       _loginPasswordController.text.trim(),
     );
 
-    // TODO: HANDLE LOGIN
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: authData.email,
+        password: authData.password,
+      );
+      navigateToHome(context);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No user found for that email.')),
+        );
+      } else if (e.code == 'wrong-password') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Wrong password provided for that user.'),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.message}')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('An error occurred: $e')));
+    }
   }
 
   void handleRegister() async {
-    final userData = User(
+    final userData = UserData(
       _nameController.text,
       _emailController.text.trim(),
       _passwordController.text.trim(),
     );
 
-    // TODO: HANDLE REGISTER
+    try {
+      // 1. Buat user baru di Firebase Auth
+      UserCredential credential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: userData.email,
+            password: userData.password,
+          );
+
+      final uid = credential.user!.uid;
+
+      // 2. Simpan data user ke Firestore
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'uid': uid,
+        'name': userData.name,
+        'password': userData.password,
+        'email': userData.email,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // 3. (Optional) Navigasi atau tampilkan pesan sukses
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Registration successful!')));
+    } catch (e) {
+      // Tangani error jika terjadi
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Registration failed: $e')));
+    } finally {
+      // Bersihkan controller setelah registrasi
+      _nameController.clear();
+      _emailController.clear();
+      _passwordController.clear();
+      _confirmPasswordController.clear();
+      _loginEmailController.clear();
+      _loginPasswordController.clear();
+    }
   }
 
   @override

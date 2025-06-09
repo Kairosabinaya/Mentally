@@ -1,7 +1,7 @@
-class User {
+class UserData {
   final String name;
   final String email;
   final String password;
 
-  User(this.name, this.email, this.password);
+  UserData(this.name, this.email, this.password);
 }

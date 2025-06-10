@@ -25,104 +25,91 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4FF),
-      body: GestureDetector(
-        onPanUpdate: (details) {
-          // If swiping down, dismiss the page
-          if (details.delta.dy > 0) {
-            // Optional: Add some threshold for sensitivity
-          }
-        },
-        onPanEnd: (details) {
-          // If swipe down with sufficient velocity, dismiss
-          if (details.velocity.pixelsPerSecond.dy > 300) {
-            Navigator.of(context).pop();
-          }
-        },
-        child: SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight:
-                      MediaQuery.of(context).size.height -
-                      MediaQuery.of(context).padding.top -
-                      MediaQuery.of(context).padding.bottom -
-                      32,
-                ),
-                child: IntrinsicHeight(
-                  child: Column(
-                    children: [
-                      _buildHeader(),
-                      const SizedBox(height: 24),
-                      _buildAlbumArt(),
-                      const SizedBox(height: 24),
-                      _buildSongInfo(),
-                      const SizedBox(height: 24),
-                      _buildProgressBar(),
-                      const SizedBox(height: 24),
-                      _buildPlaybackControls(),
-                      const SizedBox(height: 24),
-                      _buildVolumeControl(),
-                      const Spacer(),
-                      _buildBottomControls(),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-              ),
+      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: Theme.of(context).colorScheme.onSurface,
+            size: 28,
+          ),
+        ),
+        title: Text(
+          'Now Playing',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: Icon(
+              Icons.more_vert_rounded,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            children: [
+              const Spacer(),
+              _buildAlbumArt(),
+              const SizedBox(height: 32),
+              _buildSongInfo(),
+              const SizedBox(height: 32),
+              _buildProgressBar(),
+              const SizedBox(height: 32),
+              _buildPlaybackControls(),
+              const SizedBox(height: 24),
+              _buildVolumeControl(),
+              const Spacer(),
+              _buildBottomControls(),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(
-            Icons.keyboard_arrow_down,
-            color: Color(0xFF1E3A8A),
-            size: 28,
-          ),
-        ),
-        const Text(
-          'Now Playing',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF1E3A8A),
-          ),
-        ),
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.equalizer, color: Color(0xFF1E3A8A), size: 24),
-        ),
-      ],
-    );
-  }
-
   Widget _buildAlbumArt() {
-    return Container(
-      width: double.infinity,
-      height: 250,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+    return Center(
+      child: Container(
+        width: 280,
+        height: 280,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
+              blurRadius: 24,
+              offset: const Offset(0, 12),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Image.network(
+            widget.imageUrl,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                color: Theme.of(context).colorScheme.surfaceVariant,
+                child: Icon(
+                  Icons.music_note_rounded,
+                  size: 80,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              );
+            },
           ),
-        ],
-        image: DecorationImage(
-          image: NetworkImage(widget.imageUrl),
-          fit: BoxFit.cover,
         ),
       ),
     );
@@ -133,10 +120,9 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
       children: [
         Text(
           widget.title,
-          style: const TextStyle(
-            fontSize: 24,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1E3A8A),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           textAlign: TextAlign.center,
           maxLines: 2,
@@ -145,9 +131,8 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
         const SizedBox(height: 8),
         Text(
           widget.artist,
-          style: const TextStyle(
-            fontSize: 16,
-            color: Color(0xFF94A3B8),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
             fontWeight: FontWeight.w500,
           ),
           textAlign: TextAlign.center,
@@ -161,10 +146,14 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
       children: [
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
-            activeTrackColor: const Color(0xFF1E3A8A),
-            inactiveTrackColor: const Color(0xFFE2E8F0),
-            thumbColor: const Color(0xFF1E3A8A),
-            overlayColor: const Color(0xFF1E3A8A).withOpacity(0.2),
+            activeTrackColor: Theme.of(context).colorScheme.primary,
+            inactiveTrackColor: Theme.of(
+              context,
+            ).colorScheme.outline.withOpacity(0.3),
+            thumbColor: Theme.of(context).colorScheme.primary,
+            overlayColor: Theme.of(
+              context,
+            ).colorScheme.primary.withOpacity(0.2),
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
             trackHeight: 4,
           ),
@@ -186,17 +175,19 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
             children: [
               Text(
                 _formatDuration(_currentPosition),
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF64748B),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withOpacity(0.7),
                   fontWeight: FontWeight.w500,
                 ),
               ),
               Text(
                 _formatDuration(_duration),
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF64748B),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withOpacity(0.7),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -211,81 +202,108 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildControlButton(
-          icon: Icons.skip_previous,
-          size: 40,
+        IconButton.outlined(
           onPressed: () {},
+          icon: Icon(
+            Icons.shuffle_rounded,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          iconSize: 24,
         ),
-        _buildControlButton(
-          icon: _isPlaying ? Icons.pause : Icons.play_arrow,
-          size: 56,
+        IconButton.filled(
+          onPressed: () {},
+          icon: Icon(
+            Icons.skip_previous_rounded,
+            color: Theme.of(context).colorScheme.onPrimary,
+          ),
+          iconSize: 32,
+          style: IconButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            padding: const EdgeInsets.all(16),
+          ),
+        ),
+        FloatingActionButton.large(
           onPressed: () {
             setState(() {
               _isPlaying = !_isPlaying;
             });
           },
-          isPrimary: true,
-        ),
-        _buildControlButton(icon: Icons.skip_next, size: 40, onPressed: () {}),
-      ],
-    );
-  }
-
-  Widget _buildControlButton({
-    required IconData icon,
-    required double size,
-    required VoidCallback onPressed,
-    bool isPrimary = false,
-  }) {
-    return Container(
-      width: isPrimary ? 80 : 60,
-      height: isPrimary ? 80 : 60,
-      decoration: BoxDecoration(
-        color: isPrimary ? Colors.white : Colors.white.withOpacity(0.8),
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          child: Icon(
+            _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+            size: 36,
+            color: Theme.of(context).colorScheme.onPrimary,
           ),
-        ],
-      ),
-      child: IconButton(
-        onPressed: onPressed,
-        icon: Icon(icon, color: const Color(0xFF1E3A8A), size: size),
-      ),
+        ),
+        IconButton.filled(
+          onPressed: () {},
+          icon: Icon(
+            Icons.skip_next_rounded,
+            color: Theme.of(context).colorScheme.onPrimary,
+          ),
+          iconSize: 32,
+          style: IconButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            padding: const EdgeInsets.all(16),
+          ),
+        ),
+        IconButton.outlined(
+          onPressed: () {},
+          icon: Icon(
+            Icons.repeat_rounded,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          iconSize: 24,
+        ),
+      ],
     );
   }
 
   Widget _buildVolumeControl() {
-    return Row(
-      children: [
-        const Icon(Icons.volume_down, color: Color(0xFF1E3A8A), size: 24),
-        Expanded(
-          child: SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              activeTrackColor: const Color(0xFF1E3A8A),
-              inactiveTrackColor: const Color(0xFFE2E8F0),
-              thumbColor: const Color(0xFF1E3A8A),
-              overlayColor: const Color(0xFF1E3A8A).withOpacity(0.2),
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-              trackHeight: 3,
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
+          children: [
+            Icon(
+              Icons.volume_down_rounded,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
             ),
-            child: Slider(
-              value: _volume,
-              min: 0,
-              max: 1,
-              onChanged: (value) {
-                setState(() {
-                  _volume = value;
-                });
-              },
+            Expanded(
+              child: SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: Theme.of(context).colorScheme.primary,
+                  inactiveTrackColor: Theme.of(
+                    context,
+                  ).colorScheme.outline.withOpacity(0.3),
+                  thumbColor: Theme.of(context).colorScheme.primary,
+                  overlayColor: Theme.of(
+                    context,
+                  ).colorScheme.primary.withOpacity(0.2),
+                  thumbShape: const RoundSliderThumbShape(
+                    enabledThumbRadius: 6,
+                  ),
+                  trackHeight: 3,
+                ),
+                child: Slider(
+                  value: _volume,
+                  min: 0,
+                  max: 1,
+                  onChanged: (value) {
+                    setState(() {
+                      _volume = value;
+                    });
+                  },
+                ),
+              ),
             ),
-          ),
+            Icon(
+              Icons.volume_up_rounded,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ],
         ),
-        const Icon(Icons.volume_up, color: Color(0xFF1E3A8A), size: 24),
-      ],
+      ),
     );
   }
 
@@ -295,20 +313,33 @@ class _AudioPlayerPageState extends State<AudioPlayerPage> {
       children: [
         IconButton(
           onPressed: () {},
-          icon: const Icon(Icons.shuffle, color: Color(0xFF64748B), size: 24),
+          icon: Icon(
+            Icons.queue_music_rounded,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+          ),
         ),
         IconButton(
           onPressed: () {},
-          icon: const Icon(Icons.repeat, color: Color(0xFF64748B), size: 24),
+          icon: Icon(
+            Icons.favorite_border_rounded,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+          ),
+        ),
+        IconButton(
+          onPressed: () {},
+          icon: Icon(
+            Icons.share_rounded,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+          ),
         ),
       ],
     );
   }
 
   String _formatDuration(double minutes) {
-    int totalSeconds = (minutes * 60).round();
-    int mins = totalSeconds ~/ 60;
-    int secs = totalSeconds % 60;
-    return '$mins:${secs.toString().padLeft(2, '0')}';
+    final totalSeconds = (minutes * 60).round();
+    final mins = totalSeconds ~/ 60;
+    final secs = totalSeconds % 60;
+    return '${mins.toString().padLeft(1, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 }

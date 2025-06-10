@@ -57,39 +57,61 @@ class _AiConsultationPageState extends State<AiConsultationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4FF),
-      body: SafeArea(
-        child: Column(
+      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: Icon(
+            Icons.arrow_back_ios_rounded,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        title: Row(
           children: [
-            _buildHeader(),
-            Expanded(child: _buildChatList()),
-            _buildMessageInput(),
+            CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              child: Icon(
+                Icons.psychology_rounded,
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'AI Mental Health Assistant',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onBackground,
+                    ),
+                  ),
+                  Text(
+                    'Online • Ready to help',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
-      ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          const Text(
-            'AI Consultation',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E3A8A),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: Icon(
+              Icons.more_vert_rounded,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            _formatHeaderDate(DateTime.now()),
-            style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
-          ),
         ],
+      ),
+      body: Column(
+        children: [Expanded(child: _buildChatList()), _buildMessageInput()],
       ),
     );
   }
@@ -97,181 +119,59 @@ class _AiConsultationPageState extends State<AiConsultationPage> {
   Widget _buildChatList() {
     return ListView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: _messages.length,
+      padding: const EdgeInsets.all(16),
+      itemCount: _messages.length + 1, // +1 for welcome message
       itemBuilder: (context, index) {
-        final message = _messages[index];
+        if (index == 0) {
+          return _buildWelcomeMessage();
+        }
+        final message = _messages[index - 1];
         return _buildChatBubble(message);
       },
     );
   }
 
-  Widget _buildChatBubble(ChatMessage message) {
-    final bool isFromUser = message.isFromUser;
-
+  Widget _buildWelcomeMessage() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!isFromUser) ...[
-            Container(
-              width: 32,
-              height: 32,
-              margin: const EdgeInsets.only(right: 8, top: 4),
-              decoration: const BoxDecoration(
-                color: Color(0xFF1E3A8A),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.smart_toy, color: Colors.white, size: 18),
-            ),
-          ],
-          Expanded(
-            child: Column(
-              crossAxisAlignment:
-                  isFromUser
-                      ? CrossAxisAlignment.end
-                      : CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  margin: EdgeInsets.only(
-                    left: isFromUser ? 40 : 0,
-                    right: isFromUser ? 0 : 40,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isFromUser ? const Color(0xFF1E3A8A) : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    message.text,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color:
-                          isFromUser ? Colors.white : const Color(0xFF1E3A8A),
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (isFromUser) ...[
-            Container(
-              width: 32,
-              height: 32,
-              margin: const EdgeInsets.only(left: 8, top: 4),
-              decoration: const BoxDecoration(
-                color: Color(0xFF64748B),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.person, color: Colors.white, size: 18),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMessageInput() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(25),
-                border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
-              ),
-              child: TextField(
-                controller: _messageController,
-                decoration: const InputDecoration(
-                  hintText: 'Type your message...',
-                  hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                maxLines: null,
-                textInputAction: TextInputAction.send,
-                onSubmitted: (_) => _sendMessage(),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          GestureDetector(
-            onTap: _sendMessage,
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: const BoxDecoration(
-                color: Color(0xFF1E3A8A),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.send, color: Colors.white, size: 20),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNavigationBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Card(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+          padding: const EdgeInsets.all(20),
+          child: Column(
             children: [
-              _buildBottomNavItem(
-                Icons.home,
-                'Home',
-                onTap: () {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                },
-                isSelected: false,
+              Icon(
+                Icons.psychology_rounded,
+                size: 48,
+                color: Theme.of(context).colorScheme.primary,
               ),
-              _buildBottomNavItem(
-                Icons.people_outline,
-                'Community',
-                onTap: () {},
-                isSelected: false,
+              const SizedBox(height: 16),
+              Text(
+                'Welcome to AI Mental Health Support',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                textAlign: TextAlign.center,
               ),
-              _buildBottomNavItem(
-                Icons.person_outline,
-                'Profile',
-                onTap: () {},
-                isSelected: false,
+              const SizedBox(height: 8),
+              Text(
+                'I\'m here to listen and provide support. Feel free to share what\'s on your mind.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withOpacity(0.7),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _buildSuggestionChip('How are you feeling today?'),
+                  _buildSuggestionChip('I need someone to talk to'),
+                  _buildSuggestionChip('Help with anxiety'),
+                ],
               ),
             ],
           ),
@@ -280,88 +180,173 @@ class _AiConsultationPageState extends State<AiConsultationPage> {
     );
   }
 
-  Widget _buildBottomNavItem(
-    IconData icon,
-    String label, {
-    required VoidCallback onTap,
-    required bool isSelected,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+  Widget _buildSuggestionChip(String text) {
+    return ActionChip(
+      label: Text(text),
+      onPressed: () {
+        _messageController.text = text;
+        _sendMessage();
+      },
+      backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+    );
+  }
+
+  Widget _buildChatBubble(ChatMessage message) {
+    final bool isFromUser = message.isFromUser;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            color:
-                isSelected ? const Color(0xFF1E3A8A) : const Color(0xFF64748B),
-            size: 24,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color:
-                  isSelected
-                      ? const Color(0xFF1E3A8A)
-                      : const Color(0xFF64748B),
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          if (!isFromUser) ...[
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: colorScheme.primary,
+              child: Icon(
+                Icons.psychology_rounded,
+                color: colorScheme.onPrimary,
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 12),
+          ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+                  isFromUser
+                      ? CrossAxisAlignment.end
+                      : CrossAxisAlignment.start,
+              children: [
+                Card(
+                  margin: EdgeInsets.only(
+                    left: isFromUser ? 40 : 0,
+                    right: isFromUser ? 0 : 40,
+                  ),
+                  color: isFromUser ? colorScheme.primary : colorScheme.surface,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      message.text,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color:
+                            isFromUser
+                                ? colorScheme.onPrimary
+                                : colorScheme.onSurface,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: isFromUser ? 40 : 0,
+                    right: isFromUser ? 0 : 40,
+                  ),
+                  child: Text(
+                    _formatTime(message.timestamp),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
+          if (isFromUser) ...[
+            const SizedBox(width: 12),
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: colorScheme.surfaceVariant,
+              child: Icon(
+                Icons.person_rounded,
+                color: colorScheme.onSurfaceVariant,
+                size: 18,
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
+  Widget _buildMessageInput() {
+    return Card(
+      margin: EdgeInsets.zero,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: SafeArea(
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _messageController,
+                  decoration: InputDecoration(
+                    hintText: "Type your message...",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.surfaceVariant,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                  ),
+                  maxLines: null,
+                  textCapitalization: TextCapitalization.sentences,
+                ),
+              ),
+              const SizedBox(width: 12),
+              FloatingActionButton.small(
+                onPressed: _sendMessage,
+                child: const Icon(Icons.send_rounded),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _sendMessage() {
-    final text = _messageController.text.trim();
-    if (text.isEmpty) return;
+    if (_messageController.text.trim().isEmpty) return;
 
     setState(() {
       _messages.add(
-        ChatMessage(text: text, isFromUser: true, timestamp: DateTime.now()),
+        ChatMessage(
+          text: _messageController.text.trim(),
+          isFromUser: true,
+          timestamp: DateTime.now(),
+        ),
       );
     });
 
-    _messageController.clear();
-    _scrollToBottom();
-
-    // Simulate AI response after delay
+    // Simulate AI response after a delay
     Future.delayed(const Duration(seconds: 2), () {
-      _generateAiResponse(text);
+      if (mounted) {
+        setState(() {
+          _messages.add(
+            ChatMessage(
+              text: _generateAIResponse(_messageController.text.trim()),
+              isFromUser: false,
+              timestamp: DateTime.now(),
+            ),
+          );
+        });
+      }
     });
-  }
 
-  void _generateAiResponse(String userMessage) {
-    // This is where you would integrate with actual AI/database
-    // For now, using dummy responses
-    final responses = [
-      "Aku mengerti perasaan kamu. Ceritakan lebih lanjut tentang apa yang sedang kamu alami.",
-      "Terima kasih sudah berbagi. Bagaimana kalau kita coba teknik pernapasan untuk menenangkan diri?",
-      "Perasaan yang kamu alami sangat normal. Kamu tidak sendirian dalam menghadapi ini.",
-      "Mari kita cari solusi bersama. Apa yang menurutmu bisa membantu situasi ini?",
-      "Aku bangga kamu mau terbuka. Langkah pertama untuk pemulihan adalah mengakui perasaan kita.",
-    ];
+    _messageController.clear();
 
-    final response = responses[DateTime.now().millisecond % responses.length];
-
-    if (mounted) {
-      setState(() {
-        _messages.add(
-          ChatMessage(
-            text: response,
-            isFromUser: false,
-            timestamp: DateTime.now(),
-          ),
-        );
-      });
-      _scrollToBottom();
-    }
-  }
-
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Scroll to bottom
+    Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
@@ -372,12 +357,20 @@ class _AiConsultationPageState extends State<AiConsultationPage> {
     });
   }
 
-  String _formatHeaderDate(DateTime date) {
-    final days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    final dayName = days[date.weekday % 7];
-    final hour = date.hour.toString().padLeft(2, '0');
-    final minute = date.minute.toString().padLeft(2, '0');
-    return '$dayName $hour:$minute';
+  String _generateAIResponse(String userMessage) {
+    // Simple AI response simulation
+    final responses = [
+      "I understand how you're feeling. Would you like to talk more about what's bothering you?",
+      "That sounds challenging. Let's work through this together. What do you think might help?",
+      "Thank you for sharing that with me. How are you coping with these feelings?",
+      "I'm here to support you. Have you tried any breathing exercises when you feel this way?",
+      "It's okay to feel this way. What usually helps you feel better when you're going through difficult times?",
+    ];
+    return responses[DateTime.now().millisecond % responses.length];
+  }
+
+  String _formatTime(DateTime timestamp) {
+    return '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
   }
 }
 
@@ -391,21 +384,4 @@ class ChatMessage {
     required this.isFromUser,
     required this.timestamp,
   });
-
-  // Methods for database integration
-  Map<String, dynamic> toMap() {
-    return {
-      'text': text,
-      'isFromUser': isFromUser,
-      'timestamp': timestamp.toIso8601String(),
-    };
-  }
-
-  static ChatMessage fromMap(Map<String, dynamic> map) {
-    return ChatMessage(
-      text: map['text'] ?? '',
-      isFromUser: map['isFromUser'] ?? false,
-      timestamp: DateTime.parse(map['timestamp']),
-    );
-  }
 }

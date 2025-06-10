@@ -7,9 +7,27 @@ class AudioTherapyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4FF),
+      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: Icon(
+            Icons.arrow_back_ios_rounded,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        title: Text(
+          'Audio Therapy',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: Theme.of(context).colorScheme.onBackground,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: const _AudioTherapyBody(),
-      bottomNavigationBar: const _BottomNavigationWidget(),
     );
   }
 }
@@ -26,13 +44,13 @@ class _AudioTherapyBody extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
             _HeaderSection(),
-            SizedBox(height: 20),
+            SizedBox(height: 24),
             _SearchBar(),
-            SizedBox(height: 24),
+            SizedBox(height: 32),
             _RecentlyPlayedSection(),
-            SizedBox(height: 24),
+            SizedBox(height: 32),
             _PopularSection(),
-            SizedBox(height: 20),
+            SizedBox(height: 24),
           ],
         ),
       ),
@@ -45,13 +63,45 @@ class _HeaderSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Audio Therapy',
-        style: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF1E3A8A),
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Card(
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [colorScheme.primary, colorScheme.secondary],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.headphones_rounded,
+              size: 48,
+              color: colorScheme.onPrimary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Audio Therapy',
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Relax and heal your mind with guided meditation, calming sounds, and therapeutic sessions',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onPrimary.withOpacity(0.9),
+                height: 1.4,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -63,30 +113,15 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+    return SearchBar(
+      hintText: 'Search for audio sessions...',
+      leading: const Icon(Icons.search_rounded),
+      shape: MaterialStateProperty.all(
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
-      child: const Row(
-        children: [
-          Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
-          SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'search songs',
-              style: TextStyle(fontSize: 16, color: Color(0xFF94A3B8)),
-            ),
-          ),
-        ],
+      elevation: MaterialStateProperty.all(0),
+      backgroundColor: MaterialStateProperty.all(
+        Theme.of(context).colorScheme.surfaceVariant,
       ),
     );
   }
@@ -101,165 +136,16 @@ class _RecentlyPlayedSection extends StatelessWidget {
       artist: 'Amelia Hart',
       imageUrl:
           'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=400&h=400&fit=crop',
-      isLarge: true,
+      duration: '12 min',
+      category: 'Meditation',
     ),
     _AudioItem(
       title: 'Calm Your Thoughts',
       artist: 'Ethan Rivers',
       imageUrl:
           'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
-      isLarge: true,
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Recently Played',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1E3A8A),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(child: _buildLargeAudioCard(_recentlyPlayed[0], context)),
-            const SizedBox(width: 12),
-            Expanded(child: _buildLargeAudioCard(_recentlyPlayed[1], context)),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLargeAudioCard(_AudioItem item, BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder:
-                (context) => AudioPlayerPage(
-                  title: item.title,
-                  artist: item.artist,
-                  imageUrl: item.imageUrl,
-                ),
-          ),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              height: 150,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                image: DecorationImage(
-                  image: NetworkImage(item.imageUrl),
-                  fit: BoxFit.cover,
-                ),
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Colors.black.withOpacity(0.6)],
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          item.artist,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PopularSection extends StatelessWidget {
-  const _PopularSection();
-
-  static const List<_AudioItem> _popularItems = [
-    _AudioItem(
-      title: 'Reconnect with Yourself',
-      artist: 'Sophia Leigh',
-      imageUrl:
-          'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=400&fit=crop',
-      isFavorited: true,
-    ),
-    _AudioItem(
-      title: 'Healing Through Stillness',
-      artist: 'Nathaniel Hayes',
-      imageUrl:
-          'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop',
-      isFavorited: false,
-    ),
-    _AudioItem(
-      title: 'The Art of Letting Go',
-      artist: 'Evelyn Monroe',
-      imageUrl:
-          'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400&h=400&fit=crop',
-      isFavorited: false,
-    ),
-    _AudioItem(
-      title: 'Finding Inner Peace',
-      artist: 'Benjamin Clarke',
-      imageUrl:
-          'https://images.unsplash.com/photo-1444927714506-8492d94b5ba0?w=400&h=400&fit=crop',
-      isFavorited: false,
-    ),
-    _AudioItem(
-      title: 'Breathe and Go',
-      artist: 'Sarah Mitchell',
-      imageUrl:
-          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
-      isFavorited: false,
+      duration: '15 min',
+      category: 'Relaxation',
     ),
   ];
 
@@ -271,120 +157,281 @@ class _PopularSection extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Popular',
-              style: TextStyle(
-                fontSize: 18,
+            Text(
+              'Recently Played',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E3A8A),
+                color: Theme.of(context).colorScheme.onBackground,
               ),
             ),
-            TextButton(
-              onPressed: () {},
-              child: const Text(
-                'View All',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF1E3A8A),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
+            TextButton(onPressed: () {}, child: const Text('View All')),
           ],
         ),
         const SizedBox(height: 16),
-        ...List.generate(
-          _popularItems.length,
-          (index) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _buildAudioListItem(_popularItems[index], context),
+        SizedBox(
+          height: 220,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _recentlyPlayed.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: EdgeInsets.only(
+                  right: index < _recentlyPlayed.length - 1 ? 16 : 0,
+                ),
+                child: _buildLargeAudioCard(_recentlyPlayed[index], context),
+              );
+            },
           ),
         ),
       ],
     );
   }
 
-  Widget _buildAudioListItem(_AudioItem item, BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder:
-                (context) => AudioPlayerPage(
-                  title: item.title,
-                  artist: item.artist,
-                  imageUrl: item.imageUrl,
-                ),
-          ),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                image: DecorationImage(
-                  image: NetworkImage(item.imageUrl),
+  Widget _buildLargeAudioCard(_AudioItem item, BuildContext context) {
+    return SizedBox(
+      width: 180,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder:
+                    (context) => AudioPlayerPage(
+                      title: item.title,
+                      artist: item.artist,
+                      imageUrl: item.imageUrl,
+                    ),
+              ),
+            );
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: 140,
+                width: double.infinity,
+                child: Image.network(
+                  item.imageUrl,
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Theme.of(context).colorScheme.surfaceVariant,
+                      child: Icon(
+                        Icons.music_note_rounded,
+                        size: 48,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    );
+                  },
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E3A8A),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.artist,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF64748B),
+                    const SizedBox(height: 4),
+                    Text(
+                      item.artist,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.7),
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Chip(
+                          label: Text(
+                            item.category,
+                            style: Theme.of(context).textTheme.labelSmall,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PopularSection extends StatelessWidget {
+  const _PopularSection();
+
+  static const List<_AudioItem> _popularAudio = [
+    _AudioItem(
+      title: 'Deep Sleep Meditation',
+      artist: 'Sarah Johnson',
+      imageUrl:
+          'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=400&fit=crop',
+      duration: '20 min',
+      category: 'Sleep',
+    ),
+    _AudioItem(
+      title: 'Stress Relief Breathing',
+      artist: 'Michael Chen',
+      imageUrl:
+          'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop',
+      duration: '10 min',
+      category: 'Breathing',
+    ),
+    _AudioItem(
+      title: 'Morning Mindfulness',
+      artist: 'Lisa Wang',
+      imageUrl:
+          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
+      duration: '8 min',
+      category: 'Meditation',
+    ),
+    _AudioItem(
+      title: 'Anxiety Relief Session',
+      artist: 'David Miller',
+      imageUrl:
+          'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=400&h=400&fit=crop',
+      duration: '18 min',
+      category: 'Therapy',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Popular This Week',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onBackground,
               ),
             ),
-            IconButton(
-              onPressed: () {},
-              icon: Icon(
-                item.isFavorited ? Icons.favorite : Icons.favorite_border,
-                color:
-                    item.isFavorited
-                        ? const Color(0xFF1E3A8A)
-                        : const Color(0xFF64748B),
-                size: 24,
-              ),
+            TextButton(onPressed: () {}, child: const Text('View All')),
+          ],
+        ),
+        const SizedBox(height: 16),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _popularAudio.length,
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildAudioListTile(_popularAudio[index], context),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAudioListTile(_AudioItem item, BuildContext context) {
+    return Card(
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(12),
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: SizedBox(
+            width: 56,
+            height: 56,
+            child: Image.network(
+              item.imageUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: Theme.of(context).colorScheme.surfaceVariant,
+                  child: Icon(
+                    Icons.music_note_rounded,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        title: Text(
+          item.title,
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(item.artist),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Chip(
+                  label: Text(
+                    item.category,
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  item.duration,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
+        trailing: IconButton(
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder:
+                    (context) => AudioPlayerPage(
+                      title: item.title,
+                      artist: item.artist,
+                      imageUrl: item.imageUrl,
+                    ),
+              ),
+            );
+          },
+          icon: Icon(
+            Icons.play_circle_filled_rounded,
+            size: 32,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder:
+                  (context) => AudioPlayerPage(
+                    title: item.title,
+                    artist: item.artist,
+                    imageUrl: item.imageUrl,
+                  ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -394,100 +441,14 @@ class _AudioItem {
   final String title;
   final String artist;
   final String imageUrl;
-  final bool isFavorited;
-  final bool isLarge;
+  final String duration;
+  final String category;
 
   const _AudioItem({
     required this.title,
     required this.artist,
     required this.imageUrl,
-    this.isFavorited = false,
-    this.isLarge = false,
+    required this.duration,
+    required this.category,
   });
-}
-
-class _BottomNavigationWidget extends StatelessWidget {
-  const _BottomNavigationWidget();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildBottomNavItem(
-                Icons.home,
-                'Home',
-                context,
-                isSelected: false,
-              ),
-              _buildBottomNavItem(
-                Icons.people_outline,
-                'Community',
-                context,
-                isSelected: false,
-              ),
-              _buildBottomNavItem(
-                Icons.person_outline,
-                'Profile',
-                context,
-                isSelected: false,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomNavItem(
-    IconData icon,
-    String label,
-    BuildContext context, {
-    required bool isSelected,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        if (label == 'Home') {
-          Navigator.of(context).popUntil((route) => route.isFirst);
-        }
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color:
-                isSelected ? const Color(0xFF1E3A8A) : const Color(0xFF64748B),
-            size: 24,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color:
-                  isSelected
-                      ? const Color(0xFF1E3A8A)
-                      : const Color(0xFF64748B),
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

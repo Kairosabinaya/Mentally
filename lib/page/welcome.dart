@@ -1,50 +1,77 @@
 import 'package:flutter/material.dart';
-import 'package:mentally/page/auth.dart';
+import 'package:go_router/go_router.dart';
+import '../core/theme/app_colors.dart';
 
-class WelcomePage extends StatelessWidget {
-  final Color primaryColor;
-  final Color greyColor;
+class WelcomePage extends StatefulWidget {
+  const WelcomePage({super.key});
 
-  const WelcomePage({super.key})
-    : primaryColor = const Color.fromARGB(255, 13, 135, 222),
-      greyColor = const Color(0xFFE3F2FD);
+  @override
+  State<WelcomePage> createState() => _WelcomePageState();
+}
 
-  void navigateToLogin(BuildContext context) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
-    );
+class _WelcomePageState extends State<WelcomePage> {
+  @override
+  void initState() {
+    super.initState();
+    // Auto redirect to auth after 1 second
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) {
+        context.go('/auth');
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: greyColor,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Padding(padding: EdgeInsets.all(20)),
-            const Image(image: AssetImage('images/icon.png'), width: 250),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: 300,
-              height: 40,
-              child: ElevatedButton(
-                onPressed: () => navigateToLogin(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [AppColors.primary, Color(0xFF6366F1)],
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
-                child: const Text(
-                  'Get Started',
-                  style: TextStyle(color: Colors.white, fontSize: 15),
+                child: const Icon(
+                  Icons.psychology,
+                  size: 60,
+                  color: AppColors.primary,
                 ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 32),
+
+              // App Name
+              const Text(
+                'Mentally',
+                style: TextStyle(
+                  fontSize: 42,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

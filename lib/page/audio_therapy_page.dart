@@ -1,15 +1,61 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../features/audio/bloc/audio_bloc.dart';
+import '../features/audio/bloc/audio_event.dart';
+import '../features/audio/bloc/audio_state.dart';
+import '../shared/models/audio_model.dart';
+import '../shared/widgets/bottom_navigation.dart';
+import '../core/theme/app_colors.dart';
 import 'audio_player_page.dart';
+import 'favorites_page.dart';
+import 'all_songs_page.dart';
 
-class AudioTherapyPage extends StatelessWidget {
+class AudioTherapyPage extends StatefulWidget {
   const AudioTherapyPage({super.key});
+
+  @override
+  State<AudioTherapyPage> createState() => _AudioTherapyPageState();
+}
+
+class _AudioTherapyPageState extends State<AudioTherapyPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize audio when page loads
+    context.read<AudioBloc>().add(const AudioInitializeEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4FF),
+      appBar: AppBar(
+        title: const Text(
+          'Audio Therapy',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const FavoritesPage()),
+              );
+            },
+            icon: const Icon(
+              Icons.favorite_border,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+        ],
+      ),
       body: const _AudioTherapyBody(),
-      bottomNavigationBar: const _BottomNavigationWidget(),
+      bottomNavigationBar: const AppBottomNavigation(
+        currentRoute: '/audio-therapy',
+      ),
     );
   }
 }
@@ -19,106 +65,45 @@ class _AudioTherapyBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            _HeaderSection(),
-            SizedBox(height: 20),
-            _SearchBar(),
-            SizedBox(height: 24),
-            _RecentlyPlayedSection(),
-            SizedBox(height: 24),
-            _PopularSection(),
-            SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
-}
+    return BlocBuilder<AudioBloc, AudioState>(
+      builder: (context, state) {
+        if (state.status == AudioPlayerStatus.loading) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-class _HeaderSection extends StatelessWidget {
-  const _HeaderSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Audio Therapy',
-        style: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF1E3A8A),
-        ),
-      ),
-    );
-  }
-}
-
-class _SearchBar extends StatelessWidget {
-  const _SearchBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _RecentlyPlayedSection(playlists: state.playlists),
+              const SizedBox(height: 24),
+              _PopularSection(tracks: state.availableTracks),
+              const SizedBox(height: 20),
+            ],
           ),
-        ],
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
-          SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'search songs',
-              style: TextStyle(fontSize: 16, color: Color(0xFF94A3B8)),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
 
 class _RecentlyPlayedSection extends StatelessWidget {
-  const _RecentlyPlayedSection();
+  final List<AudioPlaylist> playlists;
 
-  static const List<_AudioItem> _recentlyPlayed = [
-    _AudioItem(
-      title: 'Moments of Serenity',
-      artist: 'Amelia Hart',
-      imageUrl:
-          'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=400&h=400&fit=crop',
-      isLarge: true,
-    ),
-    _AudioItem(
-      title: 'Calm Your Thoughts',
-      artist: 'Ethan Rivers',
-      imageUrl:
-          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
-      isLarge: true,
-    ),
-  ];
+  const _RecentlyPlayedSection({required this.playlists});
 
   @override
   Widget build(BuildContext context) {
+    if (playlists.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Recently Played',
+          'Recommendation',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -128,26 +113,32 @@ class _RecentlyPlayedSection extends StatelessWidget {
         const SizedBox(height: 16),
         Row(
           children: [
-            Expanded(child: _buildLargeAudioCard(_recentlyPlayed[0], context)),
+            if (playlists.isNotEmpty)
+              Expanded(child: _buildLargePlaylistCard(playlists[0], context)),
             const SizedBox(width: 12),
-            Expanded(child: _buildLargeAudioCard(_recentlyPlayed[1], context)),
+            if (playlists.length > 1)
+              Expanded(child: _buildLargePlaylistCard(playlists[1], context)),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildLargeAudioCard(_AudioItem item, BuildContext context) {
+  Widget _buildLargePlaylistCard(AudioPlaylist playlist, BuildContext context) {
     return GestureDetector(
       onTap: () {
+        // Load playlist, auto-play and navigate to audio player
+        context.read<AudioBloc>().add(AudioLoadPlaylistEvent(playlist.tracks));
+        context.read<AudioBloc>().add(const AudioPlayEvent());
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder:
-                (context) => AudioPlayerPage(
-                  title: item.title,
-                  artist: item.artist,
-                  imageUrl: item.imageUrl,
-                ),
+            builder: (context) => AudioPlayerPage(
+              title: playlist.name,
+              artist: 'Mentally Audio',
+              imageUrl:
+                  playlist.artworkUrl ??
+                  'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop',
+            ),
           ),
         );
       },
@@ -170,7 +161,10 @@ class _RecentlyPlayedSection extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 image: DecorationImage(
-                  image: NetworkImage(item.imageUrl),
+                  image: NetworkImage(
+                    playlist.artworkUrl ??
+                        'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop',
+                  ),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -192,7 +186,7 @@ class _RecentlyPlayedSection extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          item.title,
+                          playlist.name,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 14,
@@ -203,7 +197,8 @@ class _RecentlyPlayedSection extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          item.artist,
+                          playlist.description ??
+                              '${playlist.tracks.length} tracks',
                           style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 12,
@@ -223,45 +218,9 @@ class _RecentlyPlayedSection extends StatelessWidget {
 }
 
 class _PopularSection extends StatelessWidget {
-  const _PopularSection();
+  final List<AudioTrack> tracks;
 
-  static const List<_AudioItem> _popularItems = [
-    _AudioItem(
-      title: 'Reconnect with Yourself',
-      artist: 'Sophia Leigh',
-      imageUrl:
-          'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=400&fit=crop',
-      isFavorited: true,
-    ),
-    _AudioItem(
-      title: 'Healing Through Stillness',
-      artist: 'Nathaniel Hayes',
-      imageUrl:
-          'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop',
-      isFavorited: false,
-    ),
-    _AudioItem(
-      title: 'The Art of Letting Go',
-      artist: 'Evelyn Monroe',
-      imageUrl:
-          'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400&h=400&fit=crop',
-      isFavorited: false,
-    ),
-    _AudioItem(
-      title: 'Finding Inner Peace',
-      artist: 'Benjamin Clarke',
-      imageUrl:
-          'https://images.unsplash.com/photo-1444927714506-8492d94b5ba0?w=400&h=400&fit=crop',
-      isFavorited: false,
-    ),
-    _AudioItem(
-      title: 'Breathe and Go',
-      artist: 'Sarah Mitchell',
-      imageUrl:
-          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
-      isFavorited: false,
-    ),
-  ];
+  const _PopularSection({required this.tracks});
 
   @override
   Widget build(BuildContext context) {
@@ -280,7 +239,13 @@ class _PopularSection extends StatelessWidget {
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => AllSongsPage(tracks: tracks),
+                  ),
+                );
+              },
               child: const Text(
                 'View All',
                 style: TextStyle(
@@ -294,27 +259,31 @@ class _PopularSection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         ...List.generate(
-          _popularItems.length,
+          tracks.length > 5 ? 5 : tracks.length,
           (index) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: _buildAudioListItem(_popularItems[index], context),
+            child: _buildAudioListItem(tracks[index], context),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildAudioListItem(_AudioItem item, BuildContext context) {
+  Widget _buildAudioListItem(AudioTrack track, BuildContext context) {
     return GestureDetector(
       onTap: () {
+        // Load single track, auto-play and navigate to player
+        context.read<AudioBloc>().add(AudioLoadPlaylistEvent([track]));
+        context.read<AudioBloc>().add(const AudioPlayEvent());
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder:
-                (context) => AudioPlayerPage(
-                  title: item.title,
-                  artist: item.artist,
-                  imageUrl: item.imageUrl,
-                ),
+            builder: (context) => AudioPlayerPage(
+              title: track.title,
+              artist: track.artist,
+              imageUrl:
+                  track.artworkUrl ??
+                  'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop',
+            ),
           ),
         );
       },
@@ -339,7 +308,10 @@ class _PopularSection extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 image: DecorationImage(
-                  image: NetworkImage(item.imageUrl),
+                  image: NetworkImage(
+                    track.artworkUrl ??
+                        'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop',
+                  ),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -350,7 +322,7 @@ class _PopularSection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.title,
+                    track.title,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -361,7 +333,7 @@ class _PopularSection extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    item.artist,
+                    track.artist,
                     style: const TextStyle(
                       fontSize: 14,
                       color: Color(0xFF64748B),
@@ -372,16 +344,25 @@ class _PopularSection extends StatelessWidget {
                 ],
               ),
             ),
-            IconButton(
-              onPressed: () {},
-              icon: Icon(
-                item.isFavorited ? Icons.favorite : Icons.favorite_border,
-                color:
-                    item.isFavorited
-                        ? const Color(0xFF1E3A8A)
-                        : const Color(0xFF64748B),
-                size: 24,
-              ),
+            BlocBuilder<AudioBloc, AudioState>(
+              builder: (context, state) {
+                final isFavorite = state.favoriteTracks.any(
+                  (t) => t.id == track.id,
+                );
+                return IconButton(
+                  onPressed: () {
+                    // Toggle favorite
+                    context.read<AudioBloc>().add(
+                      AudioToggleFavoriteEvent(track),
+                    );
+                  },
+                  icon: Icon(
+                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: isFavorite ? Colors.red : const Color(0xFF64748B),
+                    size: 24,
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -470,8 +451,9 @@ class _BottomNavigationWidget extends StatelessWidget {
         children: [
           Icon(
             icon,
-            color:
-                isSelected ? const Color(0xFF1E3A8A) : const Color(0xFF64748B),
+            color: isSelected
+                ? const Color(0xFF1E3A8A)
+                : const Color(0xFF64748B),
             size: 24,
           ),
           const SizedBox(height: 4),
@@ -479,10 +461,9 @@ class _BottomNavigationWidget extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 12,
-              color:
-                  isSelected
-                      ? const Color(0xFF1E3A8A)
-                      : const Color(0xFF64748B),
+              color: isSelected
+                  ? const Color(0xFF1E3A8A)
+                  : const Color(0xFF64748B),
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
           ),

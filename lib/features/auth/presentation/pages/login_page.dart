@@ -51,34 +51,36 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _handleLogin() {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState?.validate() ?? false) {
+      print('🔄 AuthBloc: Login requested for ${_emailController.text.trim()}');
       context.read<AuthBloc>().add(
         AuthLoginRequested(
           email: _emailController.text.trim(),
-          password: _passwordController.text,
+          password: _passwordController.text.trim(),
         ),
       );
     }
   }
 
-  void _handleGoogleSignIn() {
-    context.read<AuthBloc>().add(const AuthGoogleSignInRequested());
-  }
-
   void _showErrorDialog(String message) {
+    // Clean up the error message
+    String cleanMessage = message;
+    if (message.startsWith('Exception: ')) {
+      cleanMessage = message.substring(11);
+    }
+
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Login Error'),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Login Error'),
+        content: Text(cleanMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
           ),
+        ],
+      ),
     );
   }
 
@@ -88,6 +90,8 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: AppColors.background,
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
+          print('🔄 LoginPage: AuthBloc state changed to ${state.runtimeType}');
+
           if (state is AuthLoading) {
             setState(() => _isLoading = true);
           } else {
@@ -95,9 +99,21 @@ class _LoginPageState extends State<LoginPage> {
           }
 
           if (state is AuthAuthenticated) {
-            context.go(AppRouter.home);
+            print('✅ LoginPage: Authentication successful, navigating to home');
+            // Use replacement to prevent back navigation to login
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                context.go(AppRouter.home);
+              }
+            });
           } else if (state is AuthError) {
-            _showErrorDialog(state.message);
+            print('❌ LoginPage: Authentication error: ${state.message}');
+            // Only show error dialog if not already showing one
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                _showErrorDialog(state.message);
+              }
+            });
           }
         },
         child: SafeArea(
@@ -155,12 +171,11 @@ class _LoginPageState extends State<LoginPage> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed:
-                          _isLoading
-                              ? null
-                              : () {
-                                context.push('/forgot-password');
-                              },
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              context.push('/forgot-password');
+                            },
                       child: const Text('Forgot Password?'),
                     ),
                   ),
@@ -172,49 +187,16 @@ class _LoginPageState extends State<LoginPage> {
                     height: 54,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _handleLogin,
-                      child:
-                          _isLoading
-                              ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                              : const Text('Sign In'),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Divider
-                  Row(
-                    children: [
-                      const Expanded(child: Divider()),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          'or',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: AppColors.textSecondary),
-                        ),
-                      ),
-                      const Expanded(child: Divider()),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Google Sign In
-                  SizedBox(
-                    width: double.infinity,
-                    height: 54,
-                    child: OutlinedButton.icon(
-                      onPressed: _isLoading ? null : _handleGoogleSignIn,
-                      icon: const Icon(Icons.g_mobiledata, size: 24),
-                      label: const Text('Continue with Google'),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.border),
-                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text('Sign In'),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -230,12 +212,11 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       TextButton(
-                        onPressed:
-                            _isLoading
-                                ? null
-                                : () {
-                                  context.push('/register');
-                                },
+                        onPressed: _isLoading
+                            ? null
+                            : () {
+                                context.push('/register');
+                              },
                         child: const Text('Sign Up'),
                       ),
                     ],

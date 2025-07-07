@@ -10,6 +10,7 @@ import '../../../../shared/widgets/ai_consultation_fab.dart';
 import '../widgets/hero_stats_card.dart';
 import '../../../auth/bloc/auth_bloc.dart';
 import '../../../auth/bloc/auth_state.dart';
+import '../../../auth/bloc/auth_event.dart';
 import '../../../mood/bloc/mood_bloc.dart';
 import '../../../mood/bloc/mood_event.dart';
 import '../../../mood/bloc/mood_state.dart';
@@ -29,8 +30,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Load today's moods
+    // Load today's moods and refresh user data
     _loadTodaysMoods();
+    _refreshUserData();
   }
 
   @override
@@ -43,12 +45,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     context.read<MoodBloc>().add(const MoodTodayRequested());
   }
 
+  void _refreshUserData() {
+    context.read<AuthBloc>().add(const AuthRefreshUserRequested());
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
       // Refresh data when app resumes
       _loadTodaysMoods();
+      _refreshUserData();
     }
   }
 
@@ -60,6 +67,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         child: RefreshIndicator(
           onRefresh: () async {
             context.read<MoodBloc>().add(const MoodTodayRequested());
+            context.read<AuthBloc>().add(const AuthRefreshUserRequested());
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),

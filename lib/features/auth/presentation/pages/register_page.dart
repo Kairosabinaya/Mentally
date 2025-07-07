@@ -22,8 +22,15 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _dobController = TextEditingController();
+
   bool _isLoading = false;
   bool _acceptTerms = false;
+  String? _selectedGender;
+  DateTime? _selectedDateOfBirth;
+
+  final List<String> _genderOptions = ['Male', 'Female', 'Other'];
 
   @override
   void dispose() {
@@ -31,6 +38,8 @@ class _RegisterPageState extends State<RegisterPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _phoneController.dispose();
+    _dobController.dispose();
     super.dispose();
   }
 
@@ -62,9 +71,6 @@ class _RegisterPageState extends State<RegisterPage> {
     if (value.length < 6) {
       return 'Password must be at least 6 characters';
     }
-    if (!value.contains(RegExp(r'[0-9]'))) {
-      return 'Password must contain at least one number';
-    }
     return null;
   }
 
@@ -78,45 +84,98 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
+  String? _validatePhone(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter your phone number';
+    }
+    if (value.length < 10) {
+      return 'Phone number must be at least 10 digits';
+    }
+    return null;
+  }
+
+  String? _validateDateOfBirth(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please select your date of birth';
+    }
+    return null;
+  }
+
+  String? _validateGender(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please select your gender';
+    }
+    return null;
+  }
+
+  Future<void> _selectDateOfBirth() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().subtract(const Duration(days: 365 * 18)),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _selectedDateOfBirth) {
+      setState(() {
+        _selectedDateOfBirth = picked;
+        _dobController.text = "${picked.day}/${picked.month}/${picked.year}";
+      });
+    }
+  }
+
   void _handleRegister() {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState?.validate() ?? false) {
       if (!_acceptTerms) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please accept the terms and conditions'),
-          ),
-        );
+        _showErrorDialog('Please accept the Terms and Conditions to continue');
         return;
       }
 
+      if (_selectedGender == null) {
+        _showErrorDialog('Please select your gender');
+        return;
+      }
+
+      if (_selectedDateOfBirth == null) {
+        _showErrorDialog('Please select your date of birth');
+        return;
+      }
+
+      print(
+        '📝 RegisterPage: Initiating registration for ${_emailController.text.trim()}',
+      );
+
       context.read<AuthBloc>().add(
-        AuthRegisterRequested(
+        AuthRegisterRequestedDetailed(
           email: _emailController.text.trim(),
-          password: _passwordController.text,
+          password: _passwordController.text.trim(),
           name: _nameController.text.trim(),
+          phone: _phoneController.text.trim(),
+          gender: _selectedGender!,
+          dateOfBirth: _selectedDateOfBirth!,
         ),
       );
     }
   }
 
-  void _handleGoogleSignIn() {
-    context.read<AuthBloc>().add(const AuthGoogleSignInRequested());
-  }
-
   void _showErrorDialog(String message) {
+    // Clean up the error message
+    String cleanMessage = message;
+    if (message.startsWith('Exception: ')) {
+      cleanMessage = message.substring(11);
+    }
+
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Registration Error'),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Registration Error'),
+        content: Text(cleanMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
           ),
+        ],
+      ),
     );
   }
 
@@ -126,6 +185,10 @@ class _RegisterPageState extends State<RegisterPage> {
       backgroundColor: AppColors.background,
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
+          print(
+            '🔄 RegisterPage: AuthBloc state changed to ${state.runtimeType}',
+          );
+
           if (state is AuthLoading) {
             setState(() => _isLoading = true);
           } else {
@@ -133,9 +196,21 @@ class _RegisterPageState extends State<RegisterPage> {
           }
 
           if (state is AuthAuthenticated) {
-            context.go(AppRouter.home);
+            print(
+              '✅ RegisterPage: Registration successful, navigating to home',
+            );
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                context.go(AppRouter.home);
+              }
+            });
           } else if (state is AuthError) {
-            _showErrorDialog(state.message);
+            print('❌ RegisterPage: Registration error: ${state.message}');
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                _showErrorDialog(state.message);
+              }
+            });
           }
         },
         child: SafeArea(
@@ -190,6 +265,82 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 20),
 
+                  // Phone Field
+                  CustomTextField(
+                    label: 'Phone Number',
+                    hint: 'Enter your phone number',
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    prefixIcon: Icons.phone_outlined,
+                    validator: _validatePhone,
+                    enabled: !_isLoading,
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Gender Dropdown
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Gender',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: _selectedGender,
+                        decoration: InputDecoration(
+                          hintText: 'Select your gender',
+                          prefixIcon: const Icon(Icons.person_outline),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: AppColors.border,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                        items: _genderOptions.map((String gender) {
+                          return DropdownMenuItem<String>(
+                            value: gender,
+                            child: Text(gender),
+                          );
+                        }).toList(),
+                        onChanged: _isLoading
+                            ? null
+                            : (String? newValue) {
+                                setState(() {
+                                  _selectedGender = newValue;
+                                });
+                              },
+                        validator: _validateGender,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Date of Birth Field
+                  CustomTextField(
+                    label: 'Date of Birth',
+                    hint: 'Select your date of birth',
+                    controller: _dobController,
+                    prefixIcon: Icons.calendar_today_outlined,
+                    readOnly: true,
+                    onTap: _selectDateOfBirth,
+                    validator: _validateDateOfBirth,
+                    enabled: !_isLoading,
+                  ),
+                  const SizedBox(height: 20),
+
                   // Password Field
                   CustomTextField(
                     label: 'Password',
@@ -219,14 +370,13 @@ class _RegisterPageState extends State<RegisterPage> {
                     children: [
                       Checkbox(
                         value: _acceptTerms,
-                        onChanged:
-                            _isLoading
-                                ? null
-                                : (value) {
-                                  setState(() {
-                                    _acceptTerms = value ?? false;
-                                  });
-                                },
+                        onChanged: _isLoading
+                            ? null
+                            : (value) {
+                                setState(() {
+                                  _acceptTerms = value ?? false;
+                                });
+                              },
                       ),
                       Expanded(
                         child: RichText(
@@ -264,49 +414,16 @@ class _RegisterPageState extends State<RegisterPage> {
                     height: 54,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _handleRegister,
-                      child:
-                          _isLoading
-                              ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                              : const Text('Create Account'),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Divider
-                  Row(
-                    children: [
-                      const Expanded(child: Divider()),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          'or',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: AppColors.textSecondary),
-                        ),
-                      ),
-                      const Expanded(child: Divider()),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Google Sign In
-                  SizedBox(
-                    width: double.infinity,
-                    height: 54,
-                    child: OutlinedButton.icon(
-                      onPressed: _isLoading ? null : _handleGoogleSignIn,
-                      icon: const Icon(Icons.g_mobiledata, size: 24),
-                      label: const Text('Continue with Google'),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.border),
-                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text('Create Account'),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -322,12 +439,11 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       ),
                       TextButton(
-                        onPressed:
-                            _isLoading
-                                ? null
-                                : () {
-                                  context.pop();
-                                },
+                        onPressed: _isLoading
+                            ? null
+                            : () {
+                                context.pop();
+                              },
                         child: const Text('Sign In'),
                       ),
                     ],

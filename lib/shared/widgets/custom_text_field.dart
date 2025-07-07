@@ -14,6 +14,8 @@ class CustomTextField extends StatefulWidget {
   final int maxLines;
   final int? maxLength;
   final TextCapitalization textCapitalization;
+  final bool readOnly;
+  final VoidCallback? onTap;
 
   const CustomTextField({
     super.key,
@@ -30,6 +32,8 @@ class CustomTextField extends StatefulWidget {
     this.maxLines = 1,
     this.maxLength,
     this.textCapitalization = TextCapitalization.none,
+    this.readOnly = false,
+    this.onTap,
   });
 
   @override
@@ -67,23 +71,25 @@ class _CustomTextFieldState extends State<CustomTextField> {
           maxLines: widget.maxLines,
           maxLength: widget.maxLength,
           textCapitalization: widget.textCapitalization,
+          readOnly: widget.readOnly,
+          onTap: widget.onTap,
           decoration: InputDecoration(
             hintText: widget.hint,
-            prefixIcon:
-                widget.prefixIcon != null ? Icon(widget.prefixIcon) : null,
-            suffixIcon:
-                widget.obscureText
-                    ? IconButton(
-                      icon: Icon(
-                        _obscureText ? Icons.visibility_off : Icons.visibility,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureText = !_obscureText;
-                        });
-                      },
-                    )
-                    : widget.suffixIcon,
+            prefixIcon: widget.prefixIcon != null
+                ? Icon(widget.prefixIcon)
+                : null,
+            suffixIcon: widget.obscureText
+                ? IconButton(
+                    icon: Icon(
+                      _obscureText ? Icons.visibility_off : Icons.visibility,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureText = !_obscureText;
+                      });
+                    },
+                  )
+                : widget.suffixIcon,
           ),
         ),
       ],

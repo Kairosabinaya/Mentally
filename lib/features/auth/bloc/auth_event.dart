@@ -36,6 +36,34 @@ class AuthRegisterRequested extends AuthEvent {
   List<Object?> get props => [email, password, name];
 }
 
+class AuthRegisterRequestedDetailed extends AuthEvent {
+  final String email;
+  final String password;
+  final String name;
+  final String gender;
+  final DateTime dateOfBirth;
+  final String phone;
+
+  const AuthRegisterRequestedDetailed({
+    required this.email,
+    required this.password,
+    required this.name,
+    required this.gender,
+    required this.dateOfBirth,
+    required this.phone,
+  });
+
+  @override
+  List<Object?> get props => [
+    email,
+    password,
+    name,
+    gender,
+    dateOfBirth,
+    phone,
+  ];
+}
+
 class AuthLogoutRequested extends AuthEvent {
   const AuthLogoutRequested();
 }
@@ -64,4 +92,8 @@ class AuthGoogleSignInRequested extends AuthEvent {
 
 class AuthDeleteAccountRequested extends AuthEvent {
   const AuthDeleteAccountRequested();
+}
+
+class AuthRefreshUserRequested extends AuthEvent {
+  const AuthRefreshUserRequested();
 }

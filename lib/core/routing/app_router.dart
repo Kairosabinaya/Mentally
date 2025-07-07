@@ -9,7 +9,8 @@ import '../../features/journal/presentation/pages/journal_page.dart';
 import '../../page/audio_therapy_page.dart';
 import '../../page/audio_player_page.dart';
 
-import '../../page/auth.dart';
+import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/community/pages/community_page.dart';
 import '../../features/ai_chat/pages/ai_chat_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
@@ -20,6 +21,7 @@ import '../../features/games/presentation/pages/games_page.dart';
 class AppRouter {
   static const String welcome = '/';
   static const String auth = '/auth';
+  static const String register = '/register';
   static const String home = '/home';
   static const String moodInput = '/mood-input';
   static const String journal = '/journal';
@@ -51,6 +53,12 @@ class AppRouter {
         path: auth,
         name: 'auth',
         builder: (context, state) => const LoginPage(),
+      ),
+
+      GoRoute(
+        path: register,
+        name: 'register',
+        builder: (context, state) => const RegisterPage(),
       ),
 
       GoRoute(
